@@ -189,17 +189,8 @@ class AutoBackupPlugin(Star):
     @backup.command("立即备份")
     async def manual_backup(self, event: AstrMessageEvent):
         """立即执行备份操作（仅管理员）"""
-        # 获取配置来判断是否为管理员
-        sender_id = event.get_sender_id()
-        if not sender_id:
-            yield event.plain_result("无法获取用户信息")
-            return
-
         # 检查是否为管理员
-        config = self.context.get_config()
-        admins = config.get("admins", [])
-
-        if sender_id not in admins and admins:  # 如果配置了管理员且当前用户不在列表中
+        if not filter.check_permission(filter.PermissionType.ADMIN, event):
             yield event.plain_result("你不是管理员，不支持此命令")
             return
 
