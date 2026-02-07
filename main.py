@@ -36,7 +36,26 @@ class AutoBackupPlugin(Star):
 
     def _get_astrbot_path(self) -> Path:
         """获取 AstrBot 的安装路径"""
-        # 获取当前工作目录，假设是 AstrBot 安装目录
+        # 基于插件文件位置获取 AstrBot 根目录
+        # 插件通常位于 plugins/ 或 plugins/插件名/ 目录下
+        plugin_file = Path(__file__).resolve()
+        possible_paths = [
+            plugin_file.parent.parent,  # plugins/astrbot_plugin_autobackup -> plugins
+            plugin_file.parent.parent.parent,  # plugins/astrbot_plugin_autobackup/main.py -> plugins
+        ]
+
+        # 尝试找到包含典型 AstrBot 文件的目录
+        for path in possible_paths:
+            # 检查是否是 AstrBot 根目录（包含典型的文件/文件夹）
+            indicators = ['data', 'core', 'plugins']
+            if any((path / indicator).exists() for indicator in indicators):
+                return path
+
+        # 如果找不到，回退到使用上下文配置路径或当前工作目录
+        if hasattr(self.context, 'base_config') and hasattr(self.context.base_config, 'path'):
+            return Path(self.context.base_config.path)
+
+        # 最后的回退选项
         return Path.cwd()
 
     def _get_backup_path(self) -> Path:
@@ -88,6 +107,9 @@ class AutoBackupPlugin(Star):
                         file_path = Path(root) / file
                         # 排除特定的文件类型
                         if file_path.suffix in ['.pyc', '.log', '.tmp']:
+                            continue
+                        # 排除之前的备份 zip 文件（防止递归备份）
+                        if file_path.name.startswith('astrbot_backup_') and file_path.suffix == '.zip':
                             continue
 
                         arcname = file_path.relative_to(self.astrbot_path)
@@ -165,9 +187,9 @@ class AutoBackupPlugin(Star):
                         break
                     await asyncio.sleep(wait_seconds % 60)
 
-                # 执行备份
+                # 执行备份（在线程池中运行，避免阻塞事件循环）
                 logger.info("执行定时备份...")
-                result = self._create_backup()
+                result = await asyncio.to_thread(self._create_backup)
                 if result["success"]:
                     logger.info(
                         f"定时备份成功: {result['filename']}, "
@@ -196,7 +218,8 @@ class AutoBackupPlugin(Star):
 
         yield event.plain_result("正在执行备份，请稍候...")
 
-        result = self._create_backup()
+        # 在线程池中运行备份操作，避免阻塞事件循环
+        result = await asyncio.to_thread(self._create_backup)
 
         if result["success"]:
             yield event.plain_result(
