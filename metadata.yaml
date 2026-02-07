@@ -1,9 +1,9 @@
 name: astrbot_plugin_autobackup
 display_name: AstrBot 自动备份
-desc: AstrBot 自动备份插件，支持定时备份和手动备份，自动排除 .venv 目录
+desc: AstrBot 自动备份插件，支持定时备份和手动备份，自动排除 .venv 目录及其他不必要的文件。
 version: 1.0.0
-author: AstrBot Community
-repo: https://github.com/AstrBotDevs/astrbot_plugin_autobackup
+author: enldm
+repo: https://github.com/enldm/astrbot_plugin_autobackup
 tags:
   - 备份
   - 定时任务
