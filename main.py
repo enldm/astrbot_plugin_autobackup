@@ -208,14 +208,11 @@ class AutoBackupPlugin(Star):
         """备份相关指令组"""
         pass
 
+    # 检查是否为管理员
+    @filter.permission_type(filter.PermissionType.ADMIN)
     @backup.command("立即备份")
     async def manual_backup(self, event: AstrMessageEvent):
         """立即执行备份操作（仅管理员）"""
-        # 检查是否为管理员
-        if not filter.check_permission(filter.PermissionType.ADMIN, event):
-            yield event.plain_result("你不是管理员，不支持此命令")
-            return
-
         yield event.plain_result("正在执行备份，请稍候...")
 
         # 在线程池中运行备份操作，避免阻塞事件循环
