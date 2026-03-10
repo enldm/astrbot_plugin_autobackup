@@ -22,7 +22,7 @@ from astrbot.api import AstrBotConfig, logger
     "AstrBot Community",
     "AstrBot 自动备份插件，支持定时备份和手动备份，自动排除 .venv 目录",
     "1.0.0",
-    "https://github.com/AstrBotDevs/astrbot_plugin_autobackup"
+    "https://github.com/enldm/astrbot_plugin_autobackup"
 )
 class AutoBackupPlugin(Star):
     """AstrBot 自动备份插件"""
